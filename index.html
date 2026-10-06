@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <h1>IA</h1>
+    <br>
+    <div id="webcam"></div>
+</body>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
+<script>
+    const URL = "https://teachablemachine.withgoogle.com/models/BRBSuTBCd/";
+    let model;
+    async function carregarIA(){
+        const modelURL = URL + "model.json";
+        const metadataURL = URL + "metadata.json";
+
+        model = await tmImage.load(modelURL, metadataURL);
+        console.log("IA carregada com sucesso!");        
+    }
+    let webcam;
+    async function ligarWebcam() {
+        const largura = 200;
+        const altura = 200;
+        const espelhar = true;
+
+        webcam = new tmImage.webcam(largura,altura,espelhar);
+        await webcam.setup();
+        await webcam.play();
+        document.getElementById("webcam").appendChild(webcam.canvas);        
+    }
+    function atualizaWebcam(){
+        webcam.update();
+        window.requestAnimationFrame(atualizaWebcam);
+    }
+    //JOGO
+    async function descobrirGesto() {
+        const previsoes = await model.predict(webcam.canvas);
+        let melhorGesto = "";
+        let maiorCerteza = 0;
+
+        for (let i=0; i< previsoes.length;i++){
+            if(previsoes[i].probability > maiorCerteza){
+                maiorCerteza = previsoes[i].probability;
+                melhorGesto = previsoes[i].className;
+            }
+        }
+        if (maiorCerteza>0.8){
+            return melhorGesto;
+        }else{
+            return "Indefinido";
+        }
+    }
+
+</script>
+
+</html>
